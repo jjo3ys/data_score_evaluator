@@ -90,7 +90,9 @@ def call_func(df , column):
             print_dash()
             print("평가할 열(column):{0}".format(df.columns[i]))
             print("평가할 열(column)에 대해 적용할 지표를 입력")
-            
+            print("항목 완전성은 모든 열(column)에 대해 평가")
+            r = complete(df.iloc[:, i])
+            score[i].update({"항목 완전성": r})
             while True:
                 print("1 = 항목 완전성")
                 print("2 = 범위 유효성")
@@ -103,21 +105,17 @@ def call_func(df , column):
                     break
 
                 elif a == '1':
-                    r = complete(df.iloc[:, i])
-                    score[i].update({"항목 완전성": r})
-
-                elif a == '2':
                     r = int_range_validate(df.iloc[:, i])
                     score[i].update({"범위 유효성": r})
 
-                elif a == '3':
+                elif a == '2':
                     pass
 
-                elif a == '4':
+                elif a == '3':
                     r = code_validate(df.iloc[:, i])
                     score[i].update({"코드 유효성":r})
 
-                elif a == '5':
+                elif a == '4':
                     print("주기에 대한 적시성을 판단: Y \n순서에 대한 적시성을 판단: N")
                     a = input(":")
                     if a == 'y' or a == 'Y':
