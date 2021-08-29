@@ -89,17 +89,16 @@ def call_func(df , column):
         score = [{} for i in range(df.shape[1])]
         for i in range(len(df.columns)):
             print_dash()
-            print("평가할 열(column):{0}".format(df.columns[i]))
-            print("평가할 열(column)에 대해 적용할 지표를 입력")
+            print("평가할 항목:{0}".format(df.columns[i]))
+            print("{0}에 대해 적용할 지표를 입력".format(df.columns[i]))
             print("항목 완전성은 모든 열(column)에 대해 평가")
             r = complete(df.iloc[:, i])
             score[i].update({"항목 완전성": r})
             while True:
-                print("1 = 항목 완전성")
-                print("2 = 범위 유효성")
-                print("3 = 형식 유효성")
-                print("4 = 코드 유효성")
-                print("5 = 데이터 제공 적시성")
+                print("1 = 범위 유효성")
+                print("2 = 형식 유효성")
+                print("3 = 코드 유효성")
+                print("4 = 데이터 제공 적시성")
                 print("N = 다음 열(column)으로")
                 a = input(":")
                 if a == "N" or a == "n":
@@ -260,31 +259,23 @@ def call_func(df , column):
 def main():
 
     print_dash()
-    print("*주의* 평가할 excel은 확장자가 csv 혹은 xlsx 이어야 하고,\nmain.py와 같은 폴더(경로)내에 1.csv 혹은 1.xlsx 으로 저장되어 있어야 함")
+    print("*주의* 평가할 excel은 확장자가 csv이어야 하고,\nmain.py와 같은 폴더(경로)내에 1.csv 으로 저장되어 있어야 함")
     print_dash()
     print("파일 불러오는 중...")
-    while True:
-        try:
-            df = pd.read_csv("1.csv")
-            print("파일 불러오기 성공")
-            break
+    
+    try:
+        df = pd.read_csv("1.csv")
+        print("파일 불러오기 성공")
+        
 
-        except:
-            pass
+    except:
+        print("파일 불러오기 실패")            
+        print("*주의* 평가할 excel은 확장자가 csv이어야 하고,\nmain.py와 같은 폴더(경로)내에 1.csv 으로 저장되어 있어야 함")
+        for i in range(5):
+            print("{0}초 후 창이 꺼집니다.".format(5-i))
+            time.sleep(1)
 
-        try:
-            df = pd.read_excel("1.xlsx")
-            print("파일 불러오기 성공")
-            break
-
-        except:
-            print("파일 불러오기 실패")
-            print("*주의* 평가할 excel은 확장자가 csv 혹은 xlsx 이어야 하고,\nmain.py와 같은 폴더(경로)내에 1.csv 혹은 1.xlsx 으로 저장되어 있어야 함")
-            for i in range(5):
-                print("{0}초 후 창이 꺼집니다.".format(5-i))
-                time.sleep(1)
-
-            sys.exit()
+        sys.exit()
         
     print("불러온 파일의 컬럼 개수:", df.shape[1])
     print_dash()
