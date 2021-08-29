@@ -53,7 +53,7 @@ def return_result(score, len_data):
             pass
 
         try:
-            err[3] += s['코드 유효성']
+            err[3] += s['항목 유일성']
             test_count[3] += 1
         except:
             pass
@@ -77,7 +77,7 @@ def return_result(score, len_data):
     return_dict = {"항목 완전성 점수":result[0],
                    "범위 유효성 점수":result[1],
                    "형식 유효성 점수":result[2],
-                   "코드 유효성 점수":result[3],
+                   "항목 유일성 점수":result[3],
                    "데이터 제공 적시성 점수":result[4]}
 
     return return_dict
@@ -97,7 +97,7 @@ def call_func(df , column):
             while True:
                 print("1 = 범위 유효성")
                 print("2 = 형식 유효성")
-                print("3 = 코드 유효성")
+                print("3 = 항목 유일성")
                 print("4 = 데이터 제공 적시성")
                 print("N = 다음 열(column)으로")
                 a = input(":")
@@ -114,8 +114,8 @@ def call_func(df , column):
                     pass
 
                 elif a == '3':
-                    r = code_validate(df.iloc[:, i])
-                    score[i].update({"코드 유효성":r})
+                    r = unique(df.iloc[:, i])
+                    score[i].update({"항목 유일성":r})
 
                 elif a == '4':
                     print("주기에 대한 적시성을 판단: Y \n순서에 대한 적시성을 판단: N")
@@ -181,7 +181,7 @@ def call_func(df , column):
             while True:
                 print("1 = 범위 유효성")
                 print("2 = 형식 유효성")
-                print("3 = 코드 유효성")
+                print("3 = 항목 유일성")
                 print("4 = 데이터 제공 적시성")
                 print("N = 다음 열(column)으로")
                 a = input(":")
@@ -197,8 +197,8 @@ def call_func(df , column):
                     score[i].update({"형식 유효성": r})
 
                 elif a == '3':
-                    r = code_validate(df.iloc[:, i])
-                    score[j].update({"코드 유효성": r})
+                    r = unique(df.iloc[:, i])
+                    score[j].update({"항목 유일성": r})
 
                 elif a == '4':
                     print("주기에 대한 적시성을 판단: Y \n순서에 대한 적시성을 판단: N")
@@ -248,7 +248,7 @@ def call_func(df , column):
 
                     if a == 'n' or a == "N":
                         r = cycle_validate(df.iloc[:, i], 'sequence')
-                        score[j].update({"항목 완전성": r})
+                        score[j].update({"데이터 제공 적시성": r})
 
             j += 1
 
