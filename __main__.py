@@ -253,7 +253,14 @@ def call_func(df , column):
             j += 1
 
     result = return_result(score, df.shape[0])
-    pp.pprint(result)    
+    print_dash()
+    for item in result.items():
+        if type(item[0]) == float:
+            print("{0}:{1}점".format(item[0], round(item[1], 3)))
+        
+        else:
+            print("{0}:{1}".format(item[0], item[1]))
+    print_dash()
 
 
 def main():
