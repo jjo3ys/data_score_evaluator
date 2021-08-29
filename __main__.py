@@ -286,7 +286,7 @@ def main():
                 print("{0}초 후 창이 꺼집니다.".format(5-i))
                 time.sleep(1)
 
-        sys.exit()
+            sys.exit()
     
     elif ".xlsx" in a :    
         try:
@@ -301,7 +301,7 @@ def main():
                 print("{0}초 후 창이 꺼집니다.".format(5-i))
                 time.sleep(1)
 
-        sys.exit()
+            sys.exit()
     
     else:
         print("입력한 파일이 __main__.py와 같은 폴더(경로) 내에 없거나 파일 이름을 잘못 입력함")
