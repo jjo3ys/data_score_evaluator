@@ -92,6 +92,7 @@ def form_validate(col):
             lenth_dict[lenth] += 1
 
     Mode = sorted(lenth_dict.items(), key = lambda x: -x[1])
+    print("분포:")
     pp.pprint(Mode)
     
     return len(col)-Mode[0][1]

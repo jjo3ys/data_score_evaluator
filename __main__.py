@@ -7,26 +7,27 @@ from scipy import stats
 from config.calculate import *
 
 def print_dash():
-    for i in range(2):
-        print("--------------------------------------------------------------------------------------------------------------")
+    print()
+    print("==============================================================================================================")
+    print()
 
 def calc_err(dpmo):
     rv = stats.norm(0, 1)
 
     if dpmo < 0.3:
-        return 100
+        return 100.0
 
     else:
         sigma = abs(rv.ppf(dpmo/1000000)-1.5)
 
         if sigma <1.5:
-            return sigma*50/1.5
+            return round(sigma*50/1.5, 3)
 
         elif sigma > 6:
-            return 100
+            return 100.0
 
         else:
-            return (sigma-1.5)*(49.9/4.5)+50
+            return round((sigma-1.5)*(49.9/4.5)+50, 3)
 
 def return_result(score, len_data):
     result = []
@@ -83,7 +84,7 @@ def return_result(score, len_data):
     return return_dict
 
     
-def call_func(df , column):
+def call_func(df , column, filename):
     print("*주의* 잘못 입력 시 처음부터 다시 시작해야 될 수도 있음")
     if column == 'all':#모든 데이터 평가
         score = [{} for i in range(df.shape[1])]
@@ -130,8 +131,8 @@ def call_func(df , column):
 
                         elif a == "N" or a == "n":
                             result = cycle_validate(df.iloc[:, i], 'dontknow')
-                            print("평가할 열(column) {0}의 최빈값, 최빈값 빈도, 최솟값, 평균:".format(df.columns[i]))
-                            print(result)
+                            print("평가할 열(column) {0}의 최빈값, 최빈값 빈도, 최솟값, 평균 or 분포:".format(df.columns[i]))
+                            pp.pprint(result)
 
                             while True:
                                 print("최빈값, 최솟값, 평균에서 사용할 주기를 입력 혹은 직접 입력")
@@ -139,8 +140,8 @@ def call_func(df , column):
                                 print("예) 최빈값 사용시 '최빈값' 입력")
                                 a = input(":")
 
-                                if a == '최빈값':                                   
-                                    r = cycle_validate(df.iloc[:, i], result['최빈값']) 
+                                if a == '최빈값':                                 
+                                    r = len(df.iloc[:, i]) - result['최빈값 빈도'] 
                                     score[i].update({"데이터 제공 적시성": r})
                                     break
 
@@ -194,7 +195,7 @@ def call_func(df , column):
 
                 elif a == '2':
                     r = form_validate(df.iloc[:, i])
-                    score[i].update({"형식 유효성": r})
+                    score[j].update({"형식 유효성": r})
 
                 elif a == '3':
                     r = unique(df.iloc[:, i])
@@ -213,7 +214,7 @@ def call_func(df , column):
 
                         elif a == "N" or a == "n":
                             result = cycle_validate(df.iloc[:, i], 'dontknow')
-                            print("평가할 열(column) {0}의 최빈값, 최빈값 빈도, 최솟값, 평균:".format(df.columns[i]))
+                            print("평가할 열(column) {0}의 최빈값, 최빈값 빈도, 최솟값, 평균 or 분포:".format(df.columns[i]))
                             pp.pprint(result)
 
                             while True:
@@ -223,7 +224,7 @@ def call_func(df , column):
                                 a = input(":")
 
                                 if a == '최빈값':
-                                    r = cycle_validate(df.iloc[:, i], result['최빈값']) 
+                                    r = len(df.iloc[:, i]) - result['최빈값 빈도']
                                     score[j].update({"데이터 제공 적시성": r})
                                     break
 
@@ -253,13 +254,14 @@ def call_func(df , column):
             j += 1
 
     result = return_result(score, df.shape[0])
+    print("                                『{0}』파일에 대한 데이터 품질 평가".format(filename))
     print_dash()
     for item in result.items():
-        if type(item[0]) == float:
-            print("{0}:{1}점".format(item[0], round(item[1], 3)))
-        
-        else:
+        if item[1] == '평가 안함':
             print("{0}:{1}".format(item[0], item[1]))
+                    
+        else:
+            print("{0}:{1}점".format(item[0], item[1]))
     print_dash()
 
 
@@ -270,12 +272,12 @@ def main():
     print("*주의* 확장자가 csv와 xlsx인 파일만 지원하며 __main__.py 와 같은 폴더(경로)내에 저잗되어 있어야 함")
     print_dash()
 
-    a = input(":")
+    filename = input(":")
     print("파일 불러오는 중...")
 
-    if ".csv" in a :    
+    if ".csv" in filename :    
         try:
-            df = pd.read_csv(a)
+            df = pd.read_csv(filename)
             print("파일 불러오기 성공")
             
 
@@ -288,9 +290,9 @@ def main():
 
             sys.exit()
     
-    elif ".xlsx" in a :    
+    elif ".xlsx" in filename :    
         try:
-            df = pd.read_excel(a)
+            df = pd.read_excel(filename)
             print("파일 불러오기 성공")
             
 
@@ -323,7 +325,7 @@ def main():
             a = input(":")
 
             if a == "Y" or a == "y":
-                call_func(df , 'all')
+                call_func(df , 'all', filename)
                 break
             
             elif a == "N" or a == "n":
@@ -340,7 +342,7 @@ def main():
 
             elif a == "N" or a == "n":
                 column.sort()
-                call_func(df , column)
+                call_func(df , column, filename)
                 break
 
             else:
