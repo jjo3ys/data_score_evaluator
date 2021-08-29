@@ -1,4 +1,5 @@
 import pandas as pd
+import sys
 import time
 import pprint as pp
 from scipy import stats
@@ -105,10 +106,12 @@ def call_func(df , column):
                     break
 
                 elif a == '1':
-                    r = int_range_validate(df.iloc[:, i])
+                    r = range_validate(df.iloc[:, i])
                     score[i].update({"범위 유효성": r})
 
                 elif a == '2':
+                    r = form_validate(df.iloc[:, i])
+                    score[i].update({"형식 유효성": r})
                     pass
 
                 elif a == '3':
@@ -119,6 +122,7 @@ def call_func(df , column):
                     print("주기에 대한 적시성을 판단: Y \n순서에 대한 적시성을 판단: N")
                     a = input(":")
                     if a == 'y' or a == 'Y':
+                        print("*주의* 데이터의 형태가 날짜일때 N 입력")
                         a = input("주기를 알고 있음 Y/N :")
                         if a == 'y' or a == 'Y':
                             cycle = input("주기:")
@@ -132,20 +136,22 @@ def call_func(df , column):
 
                             while True:
                                 print("최빈값, 최솟값, 평균에서 사용할 주기를 입력 혹은 직접 입력")
+                                print("*주의* 데이터의 형태가 날짜일때 최빈값, 최솟값, 평균 중 하나를 입력")
+                                print("예) 최빈값 사용시 '최빈값' 입력")
                                 a = input(":")
 
-                                if a == '최빈값':
-                                    r = cycle_validate(df.iloc[:, i], float(result['최빈값'])) 
+                                if a == '최빈값':                                   
+                                    r = cycle_validate(df.iloc[:, i], result['최빈값']) 
                                     score[i].update({"데이터 제공 적시성": r})
                                     break
 
                                 elif a == '최솟값':
-                                    r = cycle_validate(df.iloc[:, i], float(result['최솟값']))
+                                    r = cycle_validate(df.iloc[:, i], result['최솟값'])
                                     score[i].update({"데이터 제공 적시성": r})
                                     break
 
                                 elif a == '평균':
-                                    r = cycle_validate(df.iloc[:, i], float(result['평균'])) 
+                                    r = cycle_validate(df.iloc[:, i], result['평균']) 
                                     score[i].update({"데이터 제공 적시성": r})
                                     break
 
@@ -184,11 +190,12 @@ def call_func(df , column):
                     break
                 
                 elif a == '1':
-                    r = int_range_validate(df.iloc[:, i])
+                    r = range_validate(df.iloc[:, i])
                     score[j].update({"범위 유효성": r})
 
                 elif a == '2':
-                    pass
+                    r = form_validate(df.iloc[:, i])
+                    score[i].update({"형식 유효성": r})
 
                 elif a == '3':
                     r = code_validate(df.iloc[:, i])
@@ -198,6 +205,7 @@ def call_func(df , column):
                     print("주기에 대한 적시성을 판단: Y \n순서에 대한 적시성을 판단: N")
                     a = input(":")
                     if a == 'y' or a == 'Y':
+                        print("*주의* 데이터의 형태가 날짜일때 N 입력")
                         a = input("주기를 알고 있음 Y/N :")
                         if a == 'y' or a == 'Y':
                             cycle = input("주기:")
@@ -211,20 +219,22 @@ def call_func(df , column):
 
                             while True:
                                 print("최빈값, 최솟값, 평균에서 사용할 주기를 입력 혹은 직접 입력")
+                                print("*주의* 데이터의 형태가 날짜일때 최빈값, 최솟값, 평균 중 하나를 입력")
+                                print("예) 최빈값 사용시 '최빈값' 입력")
                                 a = input(":")
 
                                 if a == '최빈값':
-                                    r = cycle_validate(df.iloc[:, i], float(result['최빈값'])) 
+                                    r = cycle_validate(df.iloc[:, i], result['최빈값']) 
                                     score[j].update({"데이터 제공 적시성": r})
                                     break
 
                                 elif a == '최솟값':
-                                    r = cycle_validate(df.iloc[:, i], float(result['최솟값']))
+                                    r = cycle_validate(df.iloc[:, i], result['최솟값'])
                                     score[j].update({"데이터 제공 적시성": r})
                                     break
 
                                 elif a == '평균':
-                                    r = cycle_validate(df.iloc[:, i], float(result['평균'])) 
+                                    r = cycle_validate(df.iloc[:, i], result['평균'])
                                     score[j].update({"데이터 제공 적시성": r})
                                     break
 
@@ -250,12 +260,12 @@ def call_func(df , column):
 def main():
 
     print_dash()
-    print("*주의* 평가할 excel은 확장자가 csv 혹은 excel 이어야 하고,\nmain.py와 같은 폴더(경로)내에 1.csv 혹은 1.excel로 저장되어 있어야 함")
+    print("*주의* 평가할 excel은 확장자가 csv 혹은 xlsx 이어야 하고,\nmain.py와 같은 폴더(경로)내에 1.csv 혹은 1.xlsx 으로 저장되어 있어야 함")
     print_dash()
-
+    print("파일 불러오는 중...")
     while True:
         try:
-            df = pd.read_csv("1.csv", encoding='utf-8')
+            df = pd.read_csv("1.csv")
             print("파일 불러오기 성공")
             break
 
@@ -263,18 +273,19 @@ def main():
             pass
 
         try:
-            df = pd.read_excel("1.excel", encoding='utf-8')
+            df = pd.read_excel("1.xlsx")
             print("파일 불러오기 성공")
             break
 
         except:
             print("파일 불러오기 실패")
+            print("*주의* 평가할 excel은 확장자가 csv 혹은 xlsx 이어야 하고,\nmain.py와 같은 폴더(경로)내에 1.csv 혹은 1.xlsx 으로 저장되어 있어야 함")
             for i in range(5):
                 print("{0}초 후 창이 꺼집니다.".format(5-i))
                 time.sleep(1)
 
-            break
-
+            sys.exit()
+        
     print("불러온 파일의 컬럼 개수:", df.shape[1])
     print_dash()
     print("평가할 열(column)의 순번(index)를 입력, 전부 평가할 시 Y입력")
@@ -326,5 +337,4 @@ def main():
 
             except:
                 print("유효한 숫자를 입력하거나 N을 입력")
-        
 main()
