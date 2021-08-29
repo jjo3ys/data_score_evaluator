@@ -266,23 +266,46 @@ def call_func(df , column):
 def main():
 
     print_dash()
-    print("*주의* 평가할 excel은 확장자가 csv이어야 하고,\nmain.py와 같은 폴더(경로)내에 1.csv 으로 저장되어 있어야 함")
+    print("평가할 파일이름을 확장자를 포함해서 입력\nex)인천대학교.csv")
+    print("*주의* 확장자가 csv와 xlsx인 파일만 지원하며 __main__.py 와 같은 폴더(경로)내에 저잗되어 있어야 함")
     print_dash()
-    print("파일 불러오는 중...")
-    
-    try:
-        df = pd.read_csv("1.csv")
-        print("파일 불러오기 성공")
-        
 
-    except:
-        print("파일 불러오기 실패")            
-        print("*주의* 평가할 excel은 확장자가 csv이어야 하고,\nmain.py와 같은 폴더(경로)내에 1.csv 으로 저장되어 있어야 함")
-        for i in range(5):
-            print("{0}초 후 창이 꺼집니다.".format(5-i))
-            time.sleep(1)
+    a = input(":")
+    print("파일 불러오는 중...")
+
+    if ".csv" in a :    
+        try:
+            df = pd.read_csv(a)
+            print("파일 불러오기 성공")
+            
+
+        except:
+            print("파일 불러오기 실패")            
+            print("*주의* 확장자가 csv와 xlsx인 파일만 지원하며 __main__.py 와 같은 폴더(경로)내에 저잗되어 있어야 함")
+            for i in range(5):
+                print("{0}초 후 창이 꺼집니다.".format(5-i))
+                time.sleep(1)
 
         sys.exit()
+    
+    elif ".xlsx" in a :    
+        try:
+            df = pd.read_excel(a)
+            print("파일 불러오기 성공")
+            
+
+        except:
+            print("파일 불러오기 실패")            
+            print("*주의* 확장자가 csv와 xlsx인 파일만 지원하며 __main__.py 와 같은 폴더(경로)내에 저잗되어 있어야 함")
+            for i in range(5):
+                print("{0}초 후 창이 꺼집니다.".format(5-i))
+                time.sleep(1)
+
+        sys.exit()
+    
+    else:
+        print("입력한 파일이 __main__.py와 같은 폴더(경로) 내에 없거나 파일 이름을 잘못 입력함")
+        main()
         
     print("불러온 파일의 컬럼 개수:", df.shape[1])
     print_dash()
