@@ -88,13 +88,14 @@ def call_func(df , column, filename):
     print("*주의* 잘못 입력 시 처음부터 다시 시작해야 될 수도 있음")
     if column == 'all':#모든 데이터 평가
         score = [{} for i in range(df.shape[1])]
-        for i in range(len(df.columns)):
-            print_dash()
-            print("평가할 항목:{0}".format(df.columns[i]))
-            print("{0}에 대해 적용할 지표를 입력".format(df.columns[i]))
+        for i in range(len(score)):
+            print_dash()       
+            print("평가할 열(column):{0}".format(df.columns[i]))
+            print("평가할 열(column)에 대해 적용할 지표를 입력")
             print("항목 완전성은 모든 열(column)에 대해 평가")
-            r = complete(df.iloc[:, i])
+            r = complete(df.iloc[:, i])      
             score[i].update({"항목 완전성": r})
+
             while True:
                 print("1 = 범위 유효성")
                 print("2 = 형식 유효성")
@@ -104,7 +105,7 @@ def call_func(df , column, filename):
                 a = input(":")
                 if a == "N" or a == "n":
                     break
-
+                
                 elif a == '1':
                     r = range_validate(df.iloc[:, i])
                     score[i].update({"범위 유효성": r})
@@ -112,17 +113,16 @@ def call_func(df , column, filename):
                 elif a == '2':
                     r = form_validate(df.iloc[:, i])
                     score[i].update({"형식 유효성": r})
-                    pass
 
                 elif a == '3':
                     r = unique(df.iloc[:, i])
-                    score[i].update({"항목 유일성":r})
+                    score[i].update({"항목 유일성": r})
 
                 elif a == '4':
                     print("주기에 대한 적시성을 판단: Y \n순서에 대한 적시성을 판단: N")
                     a = input(":")
                     if a == 'y' or a == 'Y':
-                        print("*주의* 데이터의 형태가 날짜일때 N 입력")
+                        print("*주의* 데이터의 형태가 날짜일때 '날짜' 입력")
                         a = input("주기를 알고 있음 Y/N :")
                         if a == 'y' or a == 'Y':
                             cycle = input("주기:")
@@ -140,8 +140,8 @@ def call_func(df , column, filename):
                                 print("예) 최빈값 사용시 '최빈값' 입력")
                                 a = input(":")
 
-                                if a == '최빈값':                                 
-                                    r = len(df.iloc[:, i]) - result['최빈값 빈도'] 
+                                if a == '최빈값':
+                                    r = len(df.iloc[:, i]) - result['최빈값 빈도']
                                     score[i].update({"데이터 제공 적시성": r})
                                     break
 
@@ -151,7 +151,7 @@ def call_func(df , column, filename):
                                     break
 
                                 elif a == '평균':
-                                    r = cycle_validate(df.iloc[:, i], result['평균']) 
+                                    r = cycle_validate(df.iloc[:, i], result['평균'])
                                     score[i].update({"데이터 제공 적시성": r})
                                     break
 
@@ -163,6 +163,32 @@ def call_func(df , column, filename):
                                     
                                     except:
                                         print("올바른 값을 입력")
+
+                        elif a == "날짜":
+                            col = pd.to_datetime(df.iloc[:, i])
+                            result = cycle_validate(col, 'dontknow')
+                            print("평가할 열(column) {0}의 최빈값, 최빈값 빈도, 최솟값, 평균 or 분포:".format(df.columns[i]))
+                            pp.pprint(result)
+
+                            while True:
+                                print("최빈값, 최솟값, 평균 중 하나를 입력")
+                                print("예) 최빈값 사용시 '최빈값' 입력")
+                                a = input(":")
+
+                                if a == '최빈값':
+                                    r = len(col) - result['최빈값 빈도']
+                                    score[i].update({"데이터 제공 적시성": r})
+                                    break
+
+                                elif a == '최솟값':
+                                    r = cycle_validate(col, result['최솟값'])
+                                    score[i].update({"데이터 제공 적시성": r})
+                                    break
+
+                                elif a == '평균':
+                                    r = cycle_validate(col, result['평균'])
+                                    score[i].update({"데이터 제공 적시성": r})
+                                    break
 
                     if a == 'n' or a == "N":
                         r = cycle_validate(df.iloc[:, i], 'sequence')
@@ -205,7 +231,7 @@ def call_func(df , column, filename):
                     print("주기에 대한 적시성을 판단: Y \n순서에 대한 적시성을 판단: N")
                     a = input(":")
                     if a == 'y' or a == 'Y':
-                        print("*주의* 데이터의 형태가 날짜일때 N 입력")
+                        print("*주의* 데이터의 형태가 날짜일때 '날짜' 입력")
                         a = input("주기를 알고 있음 Y/N :")
                         if a == 'y' or a == 'Y':
                             cycle = input("주기:")
@@ -246,6 +272,32 @@ def call_func(df , column, filename):
                                     
                                     except:
                                         print("올바른 값을 입력")
+
+                        elif a == "날짜":
+                            column = pd.to_datetime(df.iloc[:, i])
+                            result = cycle_validate(column, 'dontknow')
+                            print("평가할 열(column) {0}의 최빈값, 최빈값 빈도, 최솟값, 평균 or 분포:".format(df.columns[i]))
+                            pp.pprint(result)
+
+                            while True:
+                                print("최빈값, 최솟값, 평균 중 하나를 입력")
+                                print("예) 최빈값 사용시 '최빈값' 입력")
+                                a = input(":")
+
+                                if a == '최빈값':
+                                    r = len(column) - result['최빈값 빈도']
+                                    score[j].update({"데이터 제공 적시성": r})
+                                    break
+
+                                elif a == '최솟값':
+                                    r = cycle_validate(column, result['최솟값'])
+                                    score[j].update({"데이터 제공 적시성": r})
+                                    break
+
+                                elif a == '평균':
+                                    r = cycle_validate(column, result['평균'])
+                                    score[j].update({"데이터 제공 적시성": r})
+                                    break
 
                     if a == 'n' or a == "N":
                         r = cycle_validate(df.iloc[:, i], 'sequence')

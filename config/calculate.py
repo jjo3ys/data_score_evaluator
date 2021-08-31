@@ -60,7 +60,7 @@ def range_validate(col):#범위
                     print("유효한 값으로 다시 입력")
             except:
                 print("유효한 형식으로 다시 입력")
-        
+        col = pd.to_datetime(col)
         for c in col:
             if c < Min or c > Max:
                 validation += 1
