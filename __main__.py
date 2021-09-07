@@ -1,7 +1,6 @@
 import pandas as pd
 import sys
 import time
-import pprint as pp
 import dateutil.parser
 from scipy import stats
 
@@ -80,7 +79,7 @@ def return_result(score, len_data):
         
         r = calc_err(dpmo)
         result.append(r)
-    print(err, test_count, exception_count)
+    # print(err, test_count, exception_count)
     return_dict = {"항목 완전성 점수":result[0],
                    "범위 유효성 점수":result[1],
                    "형식 유효성 점수":result[2],
@@ -93,12 +92,15 @@ def main():
     print("파일명을 확장자까지 포함해서 입력\n예) 인천대학교.csv")
     filename = input(":")
 
-    config = pd.read_excel("컬럼정보받기.xlsx", sheet_name='Sheet1').to_numpy().tolist()
+    config = pd.read_excel("컬럼정보받기.xlsx", sheet_name='Sheet1')
+    config.dropna(axis=0, how='all', inplace=True)
+    config = config.to_numpy().tolist()
+    
     df = pd.read_csv(filename)
 
     score = [{} for i in range(len(config))]
     i = 0
-
+    
     for con in config:
         data = con[0]
         try:
@@ -114,9 +116,9 @@ def main():
         data_type = con[1]
         range_check = con[2]
         form_check = con[5]
-        cycle_check = con[6]
-        cycle = con[7]
-        unique_check = con[8]
+        cycle_check = con[7]
+        cycle = con[8]
+        unique_check = con[9]
 
         if data_type == '날짜/시간':
             for k in range(len(column)):
@@ -130,24 +132,23 @@ def main():
             for k in range(len(column)):
                 try:
                     column[k] = float(column[k])
+
                 except ValueError:
                     continue
         
         elif data_type == '문자':
             for k in range(len(column)):
-                if type(column[k]) != str:
-                    print(column[k], type(column[k]))
-                # try:
-                #     column[k] = float(column[k])
-                #     print(column[k])
-                # except ValueError:
-                #     column[k] = str(column[k])
+                try:
+                    column[k] = float(column[k])
+
+                except ValueError:
+                    column[k] = str(column[k])
 
 
-        perf = complete(df.iloc[:, i])  
+        perf = complete(df.loc[:, data], data_type)  
         score[i].update({"항목 완전성": perf})
 
-        if range_check == 'Y' or range_check == 'y':
+        if range_check == 'Y':
             if data_type == '날짜/시간':
                 Min = pd.to_datetime(con[3])
                 Max = pd.to_datetime(con[4])
@@ -160,25 +161,35 @@ def main():
             score[i].update({"범위 유효성": max(r - e, 0),
                              "범위 유효성 예외": e})
 
-        if form_check == 'Y' or form_check == 'y':
-            r = form_validate(column)
-            score[i].update({"형식 유효성": max(r - perf, 0),
-                             "형식 유효성 예외": perf})
+        if form_check == 'Y':
+            if data_type == '분류':
+                divide = con[6].split(',')
+                r = divde_validate(column, divide)
+                score[i].update({"형식 유효성": max(r - perf, 0),
+                                 "형식 유효성 예외": perf})
+            
+            else:
+                r = form_validate(column)
+                score[i].update({"형식 유효성": max(r - perf, 0),
+                                "형식 유효성 예외": perf})
         
-        if cycle_check == 'Y' or cycle_check == 'y':
+        if cycle_check == 'Y':
             if data_type == '날짜/시간':
                 cycle = pd.Timedelta(cycle)
+                r, e = cycle_validate(column, cycle, data_type)
+                score[i].update({"데이터 제공 적시성": r,
+                                 "데이터 제공 적시성 예외": e})
 
-            r, e = cycle_validate(column, cycle, perf)
-            score[i].update({"데이터 제공 적시성": max(r - e, 0),
-                             "데이터 제공 적시성 예외": e})
+            else:
+                r, e = cycle_validate(column, cycle, data_type)
+                score[i].update({"데이터 제공 적시성": max(r - perf, 0),
+                                 "데이터 제공 적시성 예외": perf + e})
 
-        if unique_check == 'Y' or unique_check == 'y':
+        if unique_check == 'Y':
             r = unique_validate(column)
             score[i].update({"항목 유일성": max(r - perf, 0),
                              "항목 유일성 예외" : perf})
         
-        print(score[i])
         i += 1
 
     result = return_result(score, df.shape[0])
@@ -193,8 +204,8 @@ def main():
     print_dash()
 
     while True:
-        a = input("exit 입력시 종료:")
-        if a == 'exit' or a == "EXIT":
+        a = input("종료 입력시 종료:")
+        if a == '종료':
             break
         
 main()

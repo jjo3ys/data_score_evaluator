@@ -3,8 +3,17 @@ import datetime
 import pprint as pp
 
 
-def complete(col):
-    return len(col)- col.count()
+def complete(col, dtype):
+    if dtype == '문자':
+        validation = 0
+        for c in col:
+            if str(c) == 'nan': 
+                validation += 1
+        
+        return validation
+
+    else:
+        return len(col)- col.count()
 
 def range_validate(col, min, max):#범위
     validation = 0
@@ -23,13 +32,11 @@ def range_validate(col, min, max):#범위
 
     return validation, exception
 
-def code_validate(col):
-    print("코드의 모든 종류를 입력 공백(spacebar)로 구분")
-    Range = input(":").split()
-    Range = list(map(float, Range))
+def divde_validate(col, divide):
     validation = 0
+
     for c in col:
-        if c not in Range:
+        if str(c) not in divide:
             validation += 1
 
     return validation
@@ -51,50 +58,48 @@ def form_validate(col):
 
     return len(col)-Mode[0][1]
 
-def cycle_validate(col, cycle, perf):
+def cycle_validate(col, cycle, data_type):
     validation = 0
     exception = 0
     j = 0
 
-    if cycle == 'sequence':#순서판단
+    if data_type == 'sequence':#순서판단
         for i in range(1, len(col)):
             if col[i-1] >= col[i]:
                 validation += 1
 
         return validation
     
-    else:
-        if type(col[0]) == int or type(col[0]) == float:
-            c_ans = col[0]
-            for i in range(1, len(col)):
-                try:
-                    if float(c_ans + cycle) != float(col[i]) and float(col[i-1] + cycle) != float(col[i]):
-                        validation += 1
-                        c_ans = c_ans + cycle
-                    else:
-                        c_ans = c_ans + cycle
+    elif data_type == '숫자':
+        c_ans = col[0]
+        for i in range(1, len(col)):
+            try:
+                if float(c_ans + cycle) != float(col[i]) and float(col[i-1] + cycle) != float(col[i]):
+                    validation += 1
+                    c_ans = c_ans + cycle
+                else:
+                    c_ans = c_ans + cycle
 
-                except TypeError as e:
-                    # print("에러났어요", e)
+            except ValueError:
+                exception += 1
+
+        return validation, exception
+
+
+    elif data_type == '날짜/시간':
+        c_ans = col[0]
+        for i in range(1, len(col)):
+            try:
+                if c_ans + cycle != col[i] and col[i-1] + cycle != col[i]:
+                    validation += 1
+                    c_ans = c_ans + cycle
+                else:
+                    c_ans = c_ans + cycle
+
+            except TypeError as e:
                     exception += 1
-
-            return validation, exception + perf
-
-        else:
-            c_ans = col[0]
-            for i in range(1, len(col)):
-
-                try:
-                    if c_ans + cycle != col[i] and col[i-1] + cycle != col[i]:
-                        validation += 1
-                        c_ans = c_ans + cycle
-                    else:
-                        c_ans = c_ans + cycle
-
-                except TypeError as e:
-                       exception += 1
-           
-            return validation, exception
+        
+        return validation, exception
 
 def unique_validate(col):
     unique_itme = []
