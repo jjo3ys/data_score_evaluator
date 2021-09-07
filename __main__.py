@@ -2,6 +2,7 @@ import pandas as pd
 import sys
 import time
 import pprint as pp
+import dateutil.parser
 from scipy import stats
 
 from config.calculate import *
@@ -33,6 +34,7 @@ def return_result(score, len_data):
     result = []
     err = [0, 0, 0, 0, 0]
     test_count = [0, 0, 0, 0, 0]
+    exception_count = [0, 0, 0, 0, 0]
 
     for s in score:
         try:
@@ -43,24 +45,28 @@ def return_result(score, len_data):
 
         try:
             err[1] += s['범위 유효성']
+            exception_count[1] += s['범위 유효성 예외']
             test_count[1] += 1
         except:
             pass
 
         try:
             err[2] += s['형식 유효성']
+            exception_count[2] += s['형식 유효성 예외']
             test_count[2] += 1
         except:
             pass
 
         try:
             err[3] += s['항목 유일성']
+            exception_count[3] += s['항목 유일성 예외']
             test_count[3] += 1
         except:
             pass
 
         try:
             err[4] += s['데이터 제공 적시성']
+            exception_count[4] += s['데이터 제공 적시성 예외']
             test_count[4] += 1
         except:
             pass
@@ -70,11 +76,11 @@ def return_result(score, len_data):
             result.append('평가 안함')
             continue
 
-        dpmo = err[i]/(test_count[i]*len_data)*1000000
+        dpmo = err[i]/(test_count[i]*len_data - exception_count[i])*1000000
         
         r = calc_err(dpmo)
         result.append(r)
-    
+    print(err, test_count, exception_count)
     return_dict = {"항목 완전성 점수":result[0],
                    "범위 유효성 점수":result[1],
                    "형식 유효성 점수":result[2],
@@ -96,7 +102,7 @@ def main():
     for con in config:
         data = con[0]
         try:
-            column = df.loc[:, data]    
+            column = df.loc[:, data].to_numpy().tolist()    
             print("'{0}' 컬럼의 평가가 진행중...{1}/{2}".format(data, i+1, len(config)))
         except:
             print("'컬럼정보받기.xlsx'의 'Sheet 1'에 입력한 '{0}' 컬럼이 '데이터파일.csv'에 존재하지 않음".format(data))
@@ -113,38 +119,66 @@ def main():
         unique_check = con[8]
 
         if data_type == '날짜/시간':
-            column = pd.to_datetime(column)
-           
+            for k in range(len(column)):
+                try:
+                    column[k] = pd.to_datetime(column[k])
 
-        r = complete(df.iloc[:, i])      
-        score[i].update({"항목 완전성": r})
+                except dateutil.parser.ParserError:
+                    continue
+
+        elif data_type == '숫자':
+            for k in range(len(column)):
+                try:
+                    column[k] = float(column[k])
+                except ValueError:
+                    continue
+        
+        elif data_type == '문자':
+            for k in range(len(column)):
+                if type(column[k]) != str:
+                    print(column[k], type(column[k]))
+                # try:
+                #     column[k] = float(column[k])
+                #     print(column[k])
+                # except ValueError:
+                #     column[k] = str(column[k])
+
+
+        perf = complete(df.iloc[:, i])  
+        score[i].update({"항목 완전성": perf})
+
         if range_check == 'Y' or range_check == 'y':
             if data_type == '날짜/시간':
-                min = pd.to_datetime(con[3])
-                max = pd.to_datetime(con[4])
+                Min = pd.to_datetime(con[3])
+                Max = pd.to_datetime(con[4])
 
             else:
-                min = float(con[3])
-                max = float(con[4])
+                Min = float(con[3])
+                Max = float(con[4])
 
-            r = range_validate(column, min, max)
-            score[i].update({"범위 유효성": r})
+            r, e = range_validate(column, Min, Max)
+            score[i].update({"범위 유효성": max(r - e, 0),
+                             "범위 유효성 예외": e})
 
         if form_check == 'Y' or form_check == 'y':
             r = form_validate(column)
-            score[i].update({"형식 유효성": r})
+            score[i].update({"형식 유효성": max(r - perf, 0),
+                             "형식 유효성 예외": perf})
         
         if cycle_check == 'Y' or cycle_check == 'y':
             if data_type == '날짜/시간':
                 cycle = pd.Timedelta(cycle)
 
-            r = cycle_validate(column, cycle)
-            score[i].update({"데이터 제공 적시성": r})
+            r, e = cycle_validate(column, cycle, perf)
+            score[i].update({"데이터 제공 적시성": max(r - e, 0),
+                             "데이터 제공 적시성 예외": e})
 
         if unique_check == 'Y' or unique_check == 'y':
             r = unique_validate(column)
-            score[i].update({"항목 유일성": r})
-
+            score[i].update({"항목 유일성": max(r - perf, 0),
+                             "항목 유일성 예외" : perf})
+        
+        print(score[i])
         i += 1
 
     result = return_result(score, df.shape[0])
