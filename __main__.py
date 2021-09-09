@@ -32,9 +32,9 @@ def calc_err(dpmo):
 
 def return_result(score, len_data):
     result = []
-    err = [0, 0, 0, 0, 0]
-    test_count = [0, 0, 0, 0, 0]
-    exception_count = [0, 0, 0, 0, 0]
+    err = [0, 0, 0, 0, 0, 0]
+    test_count = [0, 0, 0, 0, 0, 0]
+    exception_count = [0, 0, 0, 0, 0, 0]
 
     for s in score:
         try:
@@ -58,20 +58,27 @@ def return_result(score, len_data):
             pass
 
         try:
-            err[3] += s['항목 유일성']
-            exception_count[3] += s['항목 유일성 예외']
+            err[3] += s['분류 유효성']
+            exception_count[3] += s['분류 유효성 예외']
             test_count[3] += 1
         except:
             pass
 
         try:
-            err[4] += s['데이터 제공 적시성']
-            exception_count[4] += s['데이터 제공 적시성 예외']
+            err[4] += s['항목 유일성']
+            exception_count[4] += s['항목 유일성 예외']
             test_count[4] += 1
         except:
             pass
 
-    for i in range(5):
+        try:
+            err[5] += s['데이터 제공 적시성']
+            exception_count[5] += s['데이터 제공 적시성 예외']
+            test_count[5] += 1
+        except:
+            pass
+
+    for i in range(6):
         if test_count[i] == 0:
             result.append('평가 안함')
             continue
@@ -84,8 +91,9 @@ def return_result(score, len_data):
     return_dict = {"항목 완전성 점수":result[0],
                    "범위 유효성 점수":result[1],
                    "형식 유효성 점수":result[2],
-                   "항목 유일성 점수":result[3],
-                   "데이터 제공 적시성 점수":result[4]}
+                   "분류 유효성 점수":result[3],
+                   "항목 유일성 점수":result[4],
+                   "데이터 제공 적시성 점수":result[5]}
 
     return return_dict
 
@@ -114,9 +122,11 @@ def main():
         data_type = con[1]
         range_check = con[2]
         form_check = con[5]
-        cycle_check = con[6]
-        cycle = con[7]
-        unique_check = con[8]
+        divide_check = con[6]
+        divide = con[7].split(',')
+        cycle_check = con[8]
+        cycle = con[9]
+        unique_check = con[10]
 
         if data_type == '날짜/시간':
             for k in range(len(column)):
@@ -163,7 +173,12 @@ def main():
             r = form_validate(column)
             score[i].update({"형식 유효성": max(r - perf, 0),
                              "형식 유효성 예외": perf})
-        
+
+        if divide_check == 'Y':
+            r = divide_validate(column, divide)
+            score[i].update({"분류 유효성": max(r - perf, 0),
+                             "분류 유효성 예외": perf})
+
         if cycle_check == 'Y':
             if data_type == '날짜/시간':
                 cycle = pd.Timedelta(cycle)

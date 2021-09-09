@@ -32,13 +32,10 @@ def range_validate(col, min, max):#범위
 
     return validation, exception
 
-def code_validate(col):
-    print("코드의 모든 종류를 입력 공백(spacebar)로 구분")
-    Range = input(":").split()
-    Range = list(map(float, Range))
+def divide_validate(col, divide):
     validation = 0
     for c in col:
-        if c not in Range:
+        if str(c) not in divide:
             validation += 1
 
     return validation
