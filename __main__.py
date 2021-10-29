@@ -15,22 +15,35 @@ def data_loader(file_name):
 
     try:
         df = pd.read_csv(file_name)
+        
+        return df, 0
+        
     except FileNotFoundError as e:
-        print("====  해당 파일이 존재하지 않습니다. ==== \n", "====  프로그램을 다시 시작합니다. ====\n", "파일명 :", file_name)
-        main()
+        print()
+        print("====  해당 파일이 존재하지 않습니다. ==== \n")
+        print()
+        print("파일명 :", file_name)
+        print()
 
-    return df
+        return None, 1
+
 
 def config_loader(file_name):
 
     try:
         df = pd.read_excel(file_name, sheet_name="Sheet1", index_col=0)
         df.dropna(axis=0, how='all', inplace=True)
+                
+        return df, 0
+
     except FileNotFoundError as e:
-        print("====  해당 파일이 존재하지 않습니다. ==== \n", "====  프로그램을 다시 시작합니다. ====\n", "파일명 :", file_name)
-        main()
-        
-    return df
+        print()
+        print("====  해당 파일이 존재하지 않습니다. ==== \n")
+        print()
+        print("파일명 :", file_name)
+        print()
+
+        return None, 1
 
 
 
@@ -45,8 +58,13 @@ def main():
     print("컬럼별 정보를 받는 파일명을 확장자까지 포함해서 입력\n예) 컬럼정보받기_A기업.xlsx")
     config_name = input(":")
 
-    df = data_loader(file_name)
-    data_info = config_loader(config_name)
+    df, return_code1 = data_loader(file_name)
+    data_info, return_code2 = config_loader(config_name)
+
+    if return_code1 == 1 or return_code2 == 1:
+        print("====   프로그램을 다시 시작합니다.   ====")
+        print()
+        return 1
     
     data_columns = df.columns.tolist()
     InfoTable_columns = data_info.index.values.tolist()
@@ -106,11 +124,17 @@ def main():
             print("{0}:{1}점".format(item[0], item[1]))
     print_dash()
 
+    return 0
 
 
 warnings.filterwarnings('ignore')
 while True:
-    main()
+    return_code = main()
+    if return_code == 1:
+        continue
+    else:
+        pass
+
     a = input("다른 기업에 대해 품질평가를 진행할 시 enter 입력\n프로그램 종료 시 '종료' 입력:")
     if a == '종료':
         break
