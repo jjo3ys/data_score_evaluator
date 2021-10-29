@@ -1,207 +1,104 @@
 import pandas as pd
+import numpy as np
+from evaluator import *
 import sys
 import time
-import pprint as pp
-import dateutil.parser
-from scipy import stats
 
-from config.calculate import *
+import warnings
 
 def print_dash():
     print()
     print("==============================================================================================================")
     print()
 
-def calc_err(dpmo):
-    rv = stats.norm(0, 1)
+def data_loader(file_name):
 
-    if dpmo < 0.3:
-        return 100.0
+    try:
+        df = pd.read_csv(file_name)
+    except FileNotFoundError as e:
+        print("====  해당 파일이 존재하지 않습니다. ==== \n", "====  프로그램을 다시 시작합니다. ====\n", "파일명 :", file_name)
+        main()
 
-    else:
-        sigma = abs(rv.ppf(dpmo/1000000)-1.5)
+    return df
 
-        if sigma <1.5:
-            return round(sigma*50/1.5, 3)
+def config_loader(file_name):
 
-        elif sigma > 6:
-            return 100.0
-
-        else:
-            return round((sigma-1.5)*(49.9/4.5)+50, 3)
-
-def return_result(score, len_data):
-    result = []
-    err = [0, 0, 0, 0, 0, 0]
-    test_count = [0, 0, 0, 0, 0, 0]
-    exception_count = [0, 0, 0, 0, 0, 0]
-
-    for s in score:
-        try:
-            err[0] += s['항목 완전성']
-            test_count[0] += 1
-        except:
-            pass
-
-        try:
-            err[1] += s['범위 유효성']
-            exception_count[1] += s['범위 유효성 예외']
-            test_count[1] += 1
-        except:
-            pass
-
-        try:
-            err[2] += s['형식 유효성']
-            exception_count[2] += s['형식 유효성 예외']
-            test_count[2] += 1
-        except:
-            pass
-
-        try:
-            err[3] += s['분류 유효성']
-            exception_count[3] += s['분류 유효성 예외']
-            test_count[3] += 1
-        except:
-            pass
-
-        try:
-            err[4] += s['항목 유일성']
-            exception_count[4] += s['항목 유일성 예외']
-            test_count[4] += 1
-        except:
-            pass
-
-        try:
-            err[5] += s['데이터 제공 적시성']
-            exception_count[5] += s['데이터 제공 적시성 예외']
-            test_count[5] += 1
-        except:
-            pass
-
-    for i in range(6):
-        if test_count[i] == 0:
-            result.append('평가 안함')
-            continue
-
-        dpmo = err[i]/(test_count[i]*len_data - exception_count[i])*1000000
+    try:
+        df = pd.read_excel(file_name, sheet_name="Sheet1", index_col=0)
+        df.dropna(axis=0, how='all', inplace=True)
+    except FileNotFoundError as e:
+        print("====  해당 파일이 존재하지 않습니다. ==== \n", "====  프로그램을 다시 시작합니다. ====\n", "파일명 :", file_name)
+        main()
         
-        r = calc_err(dpmo)
-        result.append(r)
-    
-    return_dict = {"항목 완전성 점수":result[0],
-                   "범위 유효성 점수":result[1],
-                   "형식 유효성 점수":result[2],
-                   "분류 유효성 점수":result[3],
-                   "항목 유일성 점수":result[4],
-                   "데이터 제공 적시성 점수":result[5]}
+    return df
 
-    return return_dict
+
 
 def main():
+    """
+    메인페이지를 실행하고 실행에 필요한 파일들을 입력받음
+    :return:
+    """
+
     print("파일명을 확장자까지 포함해서 입력\n예) 인천대학교.csv")
-    filename = input(":")
+    file_name = input(":")
+    print("컬럼별 정보를 받는 파일명을 확장자까지 포함해서 입력\n예) 컬럼정보받기_A기업.xlsx")
+    config_name = input(":")
 
-    config = pd.read_excel("컬럼정보받기.xlsx", sheet_name='Sheet1').to_numpy().tolist()
-    df = pd.read_csv(filename)
+    df = data_loader(file_name)
+    data_info = config_loader(config_name)
+    
+    data_columns = df.columns.tolist()
+    InfoTable_columns = data_info.index.values.tolist()
 
-    score = [{} for i in range(len(config))]
-    i = 0
-
-    for con in config:
-        data = con[0]
-        try:
-            column = df.loc[:, data].to_numpy().tolist()    
-            print("'{0}' 컬럼의 평가가 진행중...{1}/{2}".format(data, i+1, len(config)))
-        except:
-            print("'컬럼정보받기.xlsx'의 'Sheet 1'에 입력한 '{0}' 컬럼이 '데이터파일.csv'에 존재하지 않음".format(data))
-            for i in range(5):
-                print("{0}초 후에 프로그램이 종료됩니다.".format(5-i))
-                time.sleep(1)
-            sys.exit()
-
-        data_type = con[1]
-        range_check = con[2]
-        form_check = con[5]
-        divide_check = con[6]
-        divide = con[7].split(',')
-        cycle_check = con[8]
-        cycle = con[9]
-        unique_check = con[10]
-
-        if data_type == '날짜/시간':
-            for k in range(len(column)):
-                try:
-                    column[k] = pd.to_datetime(column[k])
-
-                except dateutil.parser.ParserError:
-                    continue
-
-        elif data_type == '숫자':
-            for k in range(len(column)):
-                try:
-                    column[k] = float(column[k])
-
-                except ValueError:
-                    continue
-        
-        elif data_type == '문자':
-            for k in range(len(column)):
-                try:
-                    column[k] = float(column[k])
-
-                except ValueError:
-                    column[k] = str(column[k])
+    if data_columns != InfoTable_columns:
+        print("=======  두 파일의 항목(컬럼)명이 일치하지 않습니다.. =======")
+        print("<", str(file_name), ">", "파일의 항목명 & <{0}> 의 항목명이 일치하는지 확인해주세요.".format(config_name))
+        for s in range(5):
+            print("{0}초 후에 프로그램이 종료됩니다.".format(5 - s))
+            time.sleep(1)
+        sys.exit()
 
 
-        perf = complete(df.loc[:, data], data_type)  
-        score[i].update({"항목 완전성": perf})
+    result_list = []
+    for i in range(len(data_columns)):
 
-        if range_check == 'Y':
-            if data_type == '날짜/시간':
-                Min = pd.to_datetime(con[3])
-                Max = pd.to_datetime(con[4])
+        col_name = data_columns[i]
+        column = df.loc[:, col_name]
 
-            else:
-                Min = float(con[3])
-                Max = float(con[4])
+        print("="*30, col_name, "컬럼", "="*30)
 
-            r, e = range_validate(column, Min, Max)
-            score[i].update({"범위 유효성": max(r - e, 0),
-                             "범위 유효성 예외": e})
+        d_type = data_info.loc[col_name, '항목별 속성']
+        range_check = data_info.loc[col_name, '범위 유효성 유무']
+        min_val = data_info.loc[col_name, '최솟값']
+        max_val = data_info.loc[col_name, '최댓값']
+        format_check = data_info.loc[col_name, '형식 유효성 유무']
+        class_list = data_info.loc[col_name, "분류 목록"]
+        cycle_check = data_info.loc[col_name, '주기 유무']
+        cycle = data_info.loc[col_name, '주기']
+        unique_check = data_info.loc[col_name, '유일성 유무']
 
-        if form_check == 'Y':
-            r = form_validate(column)
-            score[i].update({"형식 유효성": max(r - perf, 0),
-                             "형식 유효성 예외": perf})
 
-        if divide_check == 'Y':
-            r = divide_validate(column, divide)
-            score[i].update({"분류 유효성": max(r - perf, 0),
-                             "분류 유효성 예외": perf})
+        com_total, com_err = check_completness(column)
+        range_total, range_err = check_range(d_type, column, range_check, min_val, max_val)
+        form_total, form_err = check_format(d_type, column, format_check, class_list)
+        unique_total, unique_err = check_unique(column, unique_check)
+        cycle_total, cycle_err = check_cycle(d_type, column, cycle_check, cycle)
 
-        if cycle_check == 'Y':
-            if data_type == '날짜/시간':
-                cycle = pd.Timedelta(cycle)
-                r, e = cycle_validate(column, cycle, data_type)
-                score[i].update({"데이터 제공 적시성": r,
-                                 "데이터 제공 적시성 예외": e})
 
-            else:
-                r, e = cycle_validate(column, cycle, data_type)
-                score[i].update({"데이터 제공 적시성": max(r - perf, 0),
-                                 "데이터 제공 적시성 예외": perf + e})
+        result_list.append([com_total, com_err,
+                            range_total, range_err,
+                            form_total, form_err,
+                            unique_total, unique_err,
+                            cycle_total, cycle_err])
 
-        if unique_check == 'Y':
-            r = unique_validate(column)
-            score[i].update({"항목 유일성": max(r - perf, 0),
-                             "항목 유일성 예외" : perf})
-        
-        i += 1
-
-    result = return_result(score, df.shape[0])
-    print("                              '{0}'의 데이터 품질 평가 결과".format(filename))
+    score = get_score(result_list)
+    print()
+    print()
+    print()
+    print("                              '{0}'의 데이터 품질 평가 결과".format(file_name))
     print_dash()
-    for item in result.items():
+    for item in score.items():
         if item[1] == '평가 안함':
             print("{0}:{1}".format(item[0], item[1]))
                     
@@ -209,9 +106,12 @@ def main():
             print("{0}:{1}점".format(item[0], item[1]))
     print_dash()
 
-    while True:
-        a = input("종료 입력시 종료:")
-        if a == '종료':
-            break
-        
-main()
+
+
+warnings.filterwarnings('ignore')
+while True:
+    main()
+    a = input("다른 기업에 대해 품질평가를 진행할 시 enter 입력\n프로그램 종료 시 '종료' 입력:")
+    if a == '종료':
+        break
+    print_dash()
