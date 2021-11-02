@@ -96,8 +96,7 @@ def main():
         print("====   프로그램을 다시 시작합니다.   ====")
         print()
         return 1
-    print(data_columns)
-    print(InfoTable_columns)
+
     if data_columns != InfoTable_columns:
         print("=======  두 파일의 항목(컬럼)명이 일치하지 않습니다.. =======")
         print("<", str(file_name), ">", "파일의 항목명 & <{0}> 의 항목명이 일치하는지 확인해주세요.".format(config_name))
