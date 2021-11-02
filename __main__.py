@@ -29,23 +29,45 @@ def data_loader(file_name):
 
 
 def config_loader(file_name):
+    if '.xlsx' in file_name:
+        try:
+            df = pd.read_excel(file_name, sheet_name="Sheet1", index_col=0)
+            df.dropna(axis=0, how='all', inplace=True)
+                    
+            return df, 0
 
-    try:
-        df = pd.read_excel(file_name, sheet_name="Sheet1", index_col=0)
-        df.dropna(axis=0, how='all', inplace=True)
-                
-        return df, 0
+        except FileNotFoundError as e:
+            print()
+            print("====  해당 파일이 존재하지 않습니다. ==== \n")
+            print()
+            print("파일명 :", file_name)
+            print()
 
-    except FileNotFoundError as e:
-        print()
-        print("====  해당 파일이 존재하지 않습니다. ==== \n")
-        print()
-        print("파일명 :", file_name)
-        print()
+            return None, 1
+    
+    elif '.csv' in file_name:
+        try:
+            df = pd.read_csv(file_name, index_col=0,encoding='cp949')
+            df.dropna(axis=0, how='all', inplace=True)
+                    
+            return df, 0
 
-        return None, 1
+        except FileNotFoundError as e:
+            print()
+            print("====  해당 파일이 존재하지 않습니다. ==== \n")
+            print()
+            print("파일명 :", file_name)
+            print()
 
+            return None, 1
 
+def makecsv(file_name, index):
+    header = ['항목별 속성', '범위 유효성 유무', '최솟값', '최댓값', '형식 유효성 유무', '분류 목록', '주기 유무', '주기', '유일성 유무']
+
+    csv_list = [['문자', 'N', '', '', 'Y', '', 'N', '', 'N'] for i in range(len(index))]
+
+    df = pd.DataFrame(csv_list, index=index, columns=header)
+    df.to_csv('컬럼정보받기_{0}'.format(file_name), sep=',', encoding='cp949')
 
 def main():
     """
@@ -55,20 +77,27 @@ def main():
 
     print("파일명을 확장자까지 포함해서 입력\n예) 인천대학교.csv")
     file_name = input(":")
+
+    df, return_code1 = data_loader(file_name)
+    data_columns = df.columns.tolist()
+
+    print("\n컬럼정보받기_{0} 파일을 생성중입니다.".format(file_name))
+    makecsv(file_name, data_columns)
+    print_dash()
+    print("같은 폴더 내에 생성된 컬럼정보받기_{0} 파일을 확인하여 설정을 변경하시기 바랍니다.".format(file_name))
+    print_dash()
     print("컬럼별 정보를 받는 파일명을 확장자까지 포함해서 입력\n예) 컬럼정보받기_A기업.xlsx")
     config_name = input(":")
 
-    df, return_code1 = data_loader(file_name)
     data_info, return_code2 = config_loader(config_name)
+    InfoTable_columns = data_info.index.values.tolist()
 
     if return_code1 == 1 or return_code2 == 1:
         print("====   프로그램을 다시 시작합니다.   ====")
         print()
         return 1
-    
-    data_columns = df.columns.tolist()
-    InfoTable_columns = data_info.index.values.tolist()
-
+    print(data_columns)
+    print(InfoTable_columns)
     if data_columns != InfoTable_columns:
         print("=======  두 파일의 항목(컬럼)명이 일치하지 않습니다.. =======")
         print("<", str(file_name), ">", "파일의 항목명 & <{0}> 의 항목명이 일치하는지 확인해주세요.".format(config_name))
