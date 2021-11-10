@@ -47,7 +47,7 @@ def check_range(d_type, column, range_check, min_val, max_val):
                     column.remove(c)
                     continue
                 # print(c, type(c))
-                if c < min_val or c > max_val:
+                if c < float(min_val) or c > float(max_val):
                     err_count += 1
 
             return len(column)-empty_count, err_count
@@ -120,7 +120,7 @@ def check_format(d_type, column, format_check, class_list):
                 if c not in class_list:
                     err_count += 1
 
-            return len(column)-empty_count, err_count
+            return len(column)-empty_count, err_count-empty_count
 
         ### 데이터 타입이 문자일 경우
         else:
@@ -140,13 +140,13 @@ def check_unique(column, unique_check):
     :return: 평가받는 항목의 유효한 데이터 수, 오류 개수
     """
     empty_count = int(column.isnull().sum())
-    
+
     if unique_check == 'Y':
         column = column.dropna(axis=0)
-        unique_num = column.value_counts().tolist()[0]
+        unique_num = len(column.unique().tolist())
         err_count = len(column) - unique_num
 
-        return len(column)-empty_count, err_count
+        return len(column) - empty_count, err_count
 
     else:
         return 0, 0
@@ -168,7 +168,7 @@ def check_cycle(d_type, column, cycle_check, cycle):
             for c in range(len(column)):
                 try:
                     column[c] = float(column[c])
-                    if column[c] != column[0] + (c * cycle):
+                    if column[c] != column[0] + (c * float(cycle)):
                         err_count += 1
 
                 except ValueError as e:
@@ -227,31 +227,31 @@ def get_score(result_list):
 
     ### 평가지표별 총 오류율
     if com_total == 0:
-        compliteness_err = '평가 안함'
+        compliteness_err = 'N/A'
     
     else:
         compliteness_err = com_err/com_total
     
     if range_total == 0:
-        range_effectiveness_err = '평가 안함'
+        range_effectiveness_err = 'N/A'
     
     else:
         range_effectiveness_err = range_err/range_total
     
     if form_total == 0:
-        format_validity_err = '평가 안함'
+        format_validity_err = 'N/A'
 
     else:
         format_validity_err = form_err/form_total
     
     if unique_total == 0:
-        uniqueness_err = '평가 안함'
+        uniqueness_err = 'N/A'
 
     else:
         uniqueness_err = unique_err/unique_total
     
     if cycle_total == 0:
-        periodicity_err = '평가 안함'
+        periodicity_err = 'N/A'
 
     else:
         periodicity_err = cycle_err/cycle_total
@@ -266,7 +266,7 @@ def get_score(result_list):
 
     score_list = {}
     for err in err_rate_list.items():
-        if err[1] == '평가 안함':
+        if err[1] == 'N/A':
             score_list[err[0]] = err[1]
         
         else:

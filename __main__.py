@@ -14,8 +14,13 @@ def print_dash():
 def data_loader(file_name):
 
     try:
-        df = pd.read_csv(file_name)
+        df = pd.read_csv(file_name, encoding='cp949')
         
+        return df, 0
+    
+    except UnicodeDecodeError:
+        df = pd.read_csv(file_name, encoding='utf-8')
+
         return df, 0
         
     except FileNotFoundError as e:
@@ -26,7 +31,8 @@ def data_loader(file_name):
         print()
 
         return None, 1
-
+    
+    
 
 def config_loader(file_name):
     if '.xlsx' in file_name:
@@ -47,11 +53,17 @@ def config_loader(file_name):
     
     elif '.csv' in file_name:
         try:
-            df = pd.read_csv(file_name, index_col=0,encoding='cp949')
+            df = pd.read_csv(file_name, index_col=0, encoding='cp949')
             df.dropna(axis=0, how='all', inplace=True)
                     
             return df, 0
-
+        
+        except UnicodeDecodeError:
+            df = pd.read_csv(file_name, index_col=0, encoding='utf-8')
+            df.dropna(axis=0, how='all', inplace=True)
+                    
+            return df, 0
+            
         except FileNotFoundError as e:
             print()
             print("====  해당 파일이 존재하지 않습니다. ==== \n")
@@ -86,10 +98,11 @@ def main():
     print_dash()
     print("같은 폴더 내에 생성된 컬럼정보받기_{0} 파일을 확인하여 설정을 변경하시기 바랍니다.".format(file_name))
     print_dash()
-    print("컬럼별 정보를 받는 파일명을 확장자까지 포함해서 입력\n예) 컬럼정보받기_A기업.xlsx")
+    print("컬럼별 정보를 받는 파일명을 확장자까지 포함해서 입력\n예) 컬럼정보받기_A기업.csv")
     config_name = input(":")
 
     data_info, return_code2 = config_loader(config_name)
+
     InfoTable_columns = data_info.index.values.tolist()
 
     if return_code1 == 1 or return_code2 == 1:
@@ -98,6 +111,7 @@ def main():
         return 1
 
     if data_columns != InfoTable_columns:
+
         print("=======  두 파일의 항목(컬럼)명이 일치하지 않습니다.. =======")
         print("<", str(file_name), ">", "파일의 항목명 & <{0}> 의 항목명이 일치하는지 확인해주세요.".format(config_name))
         for s in range(5):
@@ -145,7 +159,7 @@ def main():
     print("                              '{0}'의 데이터 품질 평가 결과".format(file_name))
     print_dash()
     for item in score.items():
-        if item[1] == '평가 안함':
+        if item[1] == 'N/A':
             print("{0}:{1}".format(item[0], item[1]))
                     
         else:
