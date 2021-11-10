@@ -33,6 +33,7 @@ def check_range(d_type, column, range_check, min_val, max_val):
     
     if range_check == 'Y':
         err_count = 0
+        exc_count = 0
         empty_count = int(column.isnull().sum())
         column = column.values.tolist()
 
@@ -40,33 +41,37 @@ def check_range(d_type, column, range_check, min_val, max_val):
         if d_type == "숫자":
 
             for c in column:
+                if pd.isna(c):
+                    continue
+
                 try:
                     c = float(c)
+
                 except ValueError as e:
-                    # print("숫자가 아닌 데이터 포함", e)
-                    column.remove(c)
-                    continue
-                # print(c, type(c))
+                    exc_count += 1
+
                 if c < float(min_val) or c > float(max_val):
                     err_count += 1
 
-            return len(column)-empty_count, err_count
+            return len(column)-empty_count-exc_count, err_count
 
 
         ### 항목의 데이터 타입이 날짜/시간 일때
         elif d_type == "날짜/시간":
             for c in column:
+                if pd.isna(c):
+                    continue
+
                 try:
                     c = pd.to_datetime(str(c))
+
                 except dateutil.parser.ParserError as e:
-                    # print("날짜/시간이 아닌 데이터 포함", e)
-                    column.remove(c)
-                    continue
+                    exc_count += 1
 
                 if c < pd.to_datetime(str(min_val)) or c > pd.to_datetime(str(max_val)):
                     err_count += 1
 
-            return len(column)-empty_count, err_count
+            return len(column)-empty_count-exc_count, err_count
             
         else:
             return 0, 0
@@ -120,7 +125,7 @@ def check_format(d_type, column, format_check, class_list):
                 if c not in class_list:
                     err_count += 1
 
-            return len(column)-empty_count, err_count-empty_count
+            return len(column)-empty_count, max(err_count-empty_count, 0)
 
         ### 데이터 타입이 문자일 경우
         else:
