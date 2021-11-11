@@ -1,6 +1,5 @@
 import pandas as pd
 import csv
-import pprint as pp
 import numpy as np
 import datetime
 import dateutil.parser
@@ -227,31 +226,31 @@ def get_score(result_list):
 
     ### 평가지표별 총 오류율
     if com_total == 0:
-        compliteness_err = '평가 안함'
+        compliteness_err = 'N/A'
     
     else:
         compliteness_err = com_err/com_total
     
     if range_total == 0:
-        range_effectiveness_err = '평가 안함'
+        range_effectiveness_err = 'N/A'
     
     else:
         range_effectiveness_err = range_err/range_total
     
     if form_total == 0:
-        format_validity_err = '평가 안함'
+        format_validity_err = 'N/A'
 
     else:
         format_validity_err = form_err/form_total
     
     if unique_total == 0:
-        uniqueness_err = '평가 안함'
+        uniqueness_err = 'N/A'
 
     else:
         uniqueness_err = unique_err/unique_total
     
     if cycle_total == 0:
-        periodicity_err = '평가 안함'
+        periodicity_err = 'N/A'
 
     else:
         periodicity_err = cycle_err/cycle_total
@@ -266,7 +265,7 @@ def get_score(result_list):
 
     score_list = {}
     for err in err_rate_list.items():
-        if err[1] == '평가 안함':
+        if err[1] == 'N/A':
             score_list[err[0]] = err[1]
         
         else:

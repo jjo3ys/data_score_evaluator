@@ -86,7 +86,7 @@ def main():
     print_dash()
     print("같은 폴더 내에 생성된 컬럼정보받기_{0} 파일을 확인하여 설정을 변경하시기 바랍니다.".format(file_name))
     print_dash()
-    print("컬럼별 정보를 받는 파일명을 확장자까지 포함해서 입력\n예) 컬럼정보받기_A기업.xlsx")
+    print("컬럼별 정보를 받는 파일명을 확장자까지 포함해서 입력\n예) 컬럼정보받기_A기업.csv")
     config_name = input(":")
 
     data_info, return_code2 = config_loader(config_name)
