@@ -32,6 +32,7 @@ def check_range(d_type, column, range_check, min_val, max_val):
     
     if range_check == 'Y':
         err_count = 0
+        exc_count = 0
         empty_count = int(column.isnull().sum())
         column = column.values.tolist()
 
@@ -39,33 +40,37 @@ def check_range(d_type, column, range_check, min_val, max_val):
         if d_type == "숫자":
 
             for c in column:
+                if pd.isna(c):
+                    continue
+
                 try:
                     c = float(c)
+
                 except ValueError as e:
-                    # print("숫자가 아닌 데이터 포함", e)
-                    column.remove(c)
-                    continue
-                # print(c, type(c))
-                if c < min_val or c > max_val:
+                    exc_count += 1
+
+                if c < float(min_val) or c > float(max_val):
                     err_count += 1
 
-            return len(column)-empty_count, err_count
+            return len(column)-empty_count-exc_count, err_count
 
 
         ### 항목의 데이터 타입이 날짜/시간 일때
         elif d_type == "날짜/시간":
             for c in column:
+                if pd.isna(c):
+                    continue
+
                 try:
                     c = pd.to_datetime(str(c))
+
                 except dateutil.parser.ParserError as e:
-                    # print("날짜/시간이 아닌 데이터 포함", e)
-                    column.remove(c)
-                    continue
+                    exc_count += 1
 
                 if c < pd.to_datetime(str(min_val)) or c > pd.to_datetime(str(max_val)):
                     err_count += 1
 
-            return len(column)-empty_count, err_count
+            return len(column)-empty_count-exc_count, err_count
             
         else:
             return 0, 0
@@ -92,43 +97,53 @@ def check_format(d_type, column, format_check, class_list):
         ### 데이터 타입이 숫자일 경우
         if d_type == '숫자':
             for c in column:
+                if pd.isna(c):
+                    continue
+
                 try:
                     c = float(c)
+
                 except ValueError as e:
-                    # print("숫자 형식이 아닌 데이터", e)
+
                     err_count += 1
 
-            return len(column)-empty_count, err_count
+            return len(column) - empty_count, err_count
 
 
         ### 데이터 타입이 날짜/시간일 경우
         elif d_type == '날짜/시간':
             for c in column:
+                if pd.isna(c):
+                    continue
+
                 try:
                     c = pd.to_datetime(str(c))
                 except dateutil.parser.ParserError as e:
-                    # print("날짜/시간 형식이 아닌 데이터 포함", e)
+
                     err_count += 1
 
-            return len(column)-empty_count, err_count
+            return len(column) - empty_count, err_count
 
 
         ### 데이터 타입이 분류일 경우
         elif d_type == '분류':
             for c in column:
+                if pd.isna(c):
+                    continue
+
                 if c not in class_list:
                     err_count += 1
 
-            return len(column)-empty_count, err_count
+            return len(column) - empty_count, err_count
+
 
         ### 데이터 타입이 문자일 경우
         else:
-            return len(column)-empty_count, err_count
-    
+            return len(column) - empty_count, err_count
+
     else:
 
         return 0, 0
-
 
 
 def check_unique(column, unique_check):
@@ -139,13 +154,13 @@ def check_unique(column, unique_check):
     :return: 평가받는 항목의 유효한 데이터 수, 오류 개수
     """
     empty_count = int(column.isnull().sum())
-    
+
     if unique_check == 'Y':
         column = column.dropna(axis=0)
-        unique_num = column.value_counts().tolist()[0]
+        unique_num = len(column.unique().tolist())
         err_count = len(column) - unique_num
 
-        return len(column)-empty_count, err_count
+        return len(column) - empty_count, err_count
 
     else:
         return 0, 0
@@ -167,7 +182,7 @@ def check_cycle(d_type, column, cycle_check, cycle):
             for c in range(len(column)):
                 try:
                     column[c] = float(column[c])
-                    if column[c] != column[0] + (c * cycle):
+                    if column[c] != column[0] + (c * float(cycle)):
                         err_count += 1
 
                 except ValueError as e:
@@ -271,7 +286,7 @@ def get_score(result_list):
         else:
             dpmo = err[1] * 1000000
 
-            if dpmo < 0.3:
+            if dpmo <= 3.4:
                 score_list[err[0]] = 100.0
 
             elif dpmo > 933192:
