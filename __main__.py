@@ -93,11 +93,21 @@ def main():
     df, return_code1 = data_loader(file_name)
     data_columns = df.columns.tolist()
 
-    print("\n컬럼정보받기_{0} 파일을 생성중입니다.".format(file_name))
-    makecsv(file_name, data_columns)
-    print_dash()
-    print("같은 폴더 내에 생성된 컬럼정보받기_{0} 파일을 확인하여 설정을 변경하시기 바랍니다.".format(file_name))
-    print_dash()
+    while True:
+        print("컬럼정보받기_{0} 파일을 생성하시겠습니까? Y/N".format(file_name))
+        ans = input(":")
+
+        if ans == 'Y' or ans == 'y':
+            print("\n컬럼정보받기_{0} 파일을 생성중입니다.".format(file_name))
+            makecsv(file_name, data_columns)
+            print_dash()
+            print("같은 폴더 내에 생성된 컬럼정보받기_{0} 파일을 확인하여 설정을 변경하시기 바랍니다.".format(file_name))
+            print_dash()
+            break
+    
+        elif ans == 'N' or ans == 'n':
+            break
+
     print("컬럼별 정보를 받는 파일명을 확장자까지 포함해서 입력\n예) 컬럼정보받기_A기업.csv")
     config_name = input(":")
 

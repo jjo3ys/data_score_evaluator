@@ -48,6 +48,7 @@ def check_range(d_type, column, range_check, min_val, max_val):
 
                 except ValueError as e:
                     exc_count += 1
+                    continue
 
                 if c < float(min_val) or c > float(max_val):
                     err_count += 1
@@ -66,6 +67,7 @@ def check_range(d_type, column, range_check, min_val, max_val):
 
                 except dateutil.parser.ParserError as e:
                     exc_count += 1
+                    continue
 
                 if c < pd.to_datetime(str(min_val)) or c > pd.to_datetime(str(max_val)):
                     err_count += 1
