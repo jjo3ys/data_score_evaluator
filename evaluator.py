@@ -129,11 +129,12 @@ def check_format(d_type, column, format_check, class_list):
 
         ### 데이터 타입이 분류일 경우
         elif d_type == '분류':
+            class_list = class_list.split(',')
             for c in column:
                 if pd.isna(c):
                     continue
 
-                if c not in class_list:
+                if str(c) not in class_list:
                     err_count += 1
 
             return len(column) - empty_count, err_count

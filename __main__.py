@@ -86,11 +86,24 @@ def main():
     메인페이지를 실행하고 실행에 필요한 파일들을 입력받음
     :return:
     """
+    while True:
+        print("파일명을 확장자까지 포함해서 입력\n예) 인천대학교.csv")
+        file_name = input(":")
+        try:
+            df, return_code = data_loader(file_name)
+        except TypeError:
+            print("====     파일명을 올바르게 입력     ====")
+            print()
+            continue
+        
+        if return_code == 1:
+            print("====     파일명을 올바르게 입력     ====")
+            print()
+        
+        else: 
+            break
+  
 
-    print("파일명을 확장자까지 포함해서 입력\n예) 인천대학교.csv")
-    file_name = input(":")
-
-    df, return_code1 = data_loader(file_name)
     data_columns = df.columns.tolist()
 
     while True:
@@ -101,24 +114,33 @@ def main():
             print("\n컬럼정보받기_{0} 파일을 생성중입니다.".format(file_name))
             makecsv(file_name, data_columns)
             print_dash()
-            print("같은 폴더 내에 생성된 컬럼정보받기_{0} 파일을 확인하여 설정을 변경하시기 바랍니다.".format(file_name))
+            print("같은 폴더 내에 생성된 컬럼정보받기_{0} 파일을\n 확인하여 설정을 변경하시기 바랍니다.".format(file_name))
             print_dash()
             break
     
         elif ans == 'N' or ans == 'n':
             break
 
-    print("컬럼별 정보를 받는 파일명을 확장자까지 포함해서 입력\n예) 컬럼정보받기_A기업.csv")
-    config_name = input(":")
+    while True:
+        print("컬럼별 정보를 받는 파일명을 확장자까지 포함해서 입력\n예) 컬럼정보받기_기업A.csv")
+        config_name = input(":")
+        try:
+            data_info, return_code = config_loader(config_name)
+        except TypeError:
+            print("====     파일명을 올바르게 입력     ====")
+            print()
+            continue
 
-    data_info, return_code2 = config_loader(config_name)
+        if return_code == 1:
+            print("====     파일명을 올바르게 입력     ====")
+            print()
+
+        else:
+            break
 
     InfoTable_columns = data_info.index.values.tolist()
 
-    if return_code1 == 1 or return_code2 == 1:
-        print("====   프로그램을 다시 시작합니다.   ====")
-        print()
-        return 1
+    
 
     if data_columns != InfoTable_columns:
 
