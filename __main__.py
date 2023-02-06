@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-from evaluator import *
+from func.evaluator import *
 import sys
 import time
 
